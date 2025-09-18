@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken"
 const asyncJwtSign = (payload, secret) => {
-    return new promise ((resolve, reject) => {
+    return new Promise ((resolve, reject) => {
         jwt.sign(payload,secret,(err, token ) => {
             if (err) {
                 return reject(err)
@@ -11,7 +11,7 @@ const asyncJwtSign = (payload, secret) => {
 }
 
 const asyncJwtVerify = (token, secret) => {
-    return new promise  (( resolve, reject) => {
+    return new Promise  (( resolve, reject) => {
         jwt.verify(token, secret, (err, token) =>  {
             if (err) {
                 return reject(err)

@@ -9,6 +9,6 @@ userRouter
   .patch('/forgotPassword', forgotPassword)
   .patch('/resetPassword', resetPassword)
   .get('/profile', authentication, getMe)
-  .get('/profile/image', authentication, updateProfileImage)
+  .patch('/profile/image', authentication, updateProfileImage)
 
 export default userRouter
