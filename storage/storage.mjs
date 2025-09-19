@@ -1,24 +1,37 @@
-import dotenv from 'dotenv'
-dotenv.config()
 
+import cloudinary from "./cloudinary.mjs"
+import { Readable } from "node:stream"
 
-// Require the cloudinary library from  ' cloudinary' .v2
-
-import cd from 'cloudinary'
-const cloudinary = cd.v2
-
-
-const cloudinary = require('cloudinary').v2;
-
-// Return "https" URLs by setting secure: true
-cloudinary.config({
-    
-  secure: true
-});
-
-// Log the configuration
-console.log(cloudinary);
-
-const imageUpload = async(fileName) => {
-    await cloudinary.uploader.upload, { acces_mode: 'public'}
+function bufferToStream(buffer) {
+  const readable = new Readable();
+  readable.push(buffer);
+  readable.push(null); // end of stream
+  return readable;
 }
+
+const uploadImage = async (file, folderName, isPublic) => {
+  const result = await new Promise((resolve, reject) => {
+    try {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        {
+          folder: folderName,
+          access_mode: isPublic ? "public" : "authenticated",
+        },
+        (error, result) => {
+          if (error) return reject(error);
+          console.log("-------------------")
+          console.log(result)
+          console.log("------------------------------")
+          resolve(result);
+        }
+      );
+
+      bufferToStream(file.buffer).pipe(uploadStream);
+    } catch (err) {
+
+    }
+  });
+  return result
+}
+
+export { uploadImage }
