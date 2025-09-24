@@ -26,7 +26,7 @@ model User {
 model Game {
    id                Int                     @id @default(autoincrement())
    name              String 
-   maxPLayer         Int
+   maxPlayer         Int
    minPlayer         Int
    thumbnail         String?
    PlayerGameProfile PlayerGameProfile[]
@@ -46,7 +46,7 @@ model PlayerGameProfile{
    @@unique([gameID, playerID])
 }
  enum Status {
-  WEAITING
+  WAITING
   PLAYING
   LEFT
   FINISHED
@@ -57,16 +57,23 @@ model PlayerGameProfile{
    id                  Int                     @id @default(autoincrement())
    gameID              Int    
    game                Game                    @relation(fields: [gameID],references: [id])
-   status              Status                  @default(WEAITING)
-   winner              String?
-   GameSessionPlayer   GameSessionPlayer[]
-  
+   status              Status                  @default(WAITING)
+  winner            String?
+  GameUrl           String?
+  ProcessID         Int?
+  CreatedAt         DateTime            @default(now())
+  StartedAt         DateTime?
+  GameSessionPlayer GameSessionPlayer[] 
  }
 
- model GameSessionPlayer {
-   id              Int     @id @default(autoincrement())
-   sessionID       Int
-   gameSession     GameSession @relation(fields: [sessionID], references: [id])
-   playerID        Int
-   player          User      @relation(fields: [playerID],references: [id])
- }
+
+
+model GameSessionPlayer {
+  id          Int         @id @default(autoincrement())
+  sessionID   Int
+  gameSession GameSession @relation(fields: [sessionID], references: [id])
+  playerID    Int
+  player      User        @relation(fields: [playerID], references: [id])
+
+  @@unique([sessionID, playerID])
+}

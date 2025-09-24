@@ -1,12 +1,13 @@
 import express from 'express'
 const gameRouter = express.Router()
-import  { addGame, listGame} from "./controller.mjs"
+import  { addGame, listGame, requestGame} from "./controller.mjs"
 import { authentication } from '../auth.mjs'
 
 gameRouter.use(authentication)
 
 gameRouter
     .post('/', addGame)
-    .post('/', listGame)
+    .get('/', listGame)
+    .post('/request', requestGame)
 
 export default  gameRouter

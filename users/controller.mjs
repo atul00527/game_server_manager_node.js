@@ -25,6 +25,7 @@ const signup = async (req, res, next) => {
   const futureExpiryTime = dayjs().add(15, "minute");
 
   // add user to DB
+  try{
   const newUser = await prisma.user.create({
     data: {
       email: req.body.email,
@@ -43,9 +44,17 @@ const signup = async (req, res, next) => {
     subject: "Verfication Email",
     body: `<html>
       <h1>Welcome ${newUser.name}</h1>
-      <a href=${link}>Click Here to verify account</a>
+       <a href=${link}>Click Here to verify account</a>
     </html>`,
   });
+} catch (err) {
+  if (err instanceof prisma.PrismaClientKnownRequestError) {
+    if (err.code === DB_ERROR_CODES.UNIQUE_ERR) {
+      throw new  ServerError(401, 'User With this email already exists.')
+    }
+  }
+  throw err
+}
 
   // IN FUTURE Implement something like this
   // const user = await catchDBError(await prisma.user.create({
@@ -91,7 +100,7 @@ const login = async (req, res, next) => {
     { expiresIn: process.env.TOKEN_EXPIRY_TIME }
   );
 
-  res.json({ msg: "login successful", token });
+  res.json({ msg: "login successful", token, id: user.id, name: user.name, eamil: user.email, profilePhoto: user.profilePhoto });
 };
 
 const forgotPassword = async (req, res, next) => {
@@ -188,8 +197,24 @@ const getMe = async (req, res, next) => {
 };
 
 const updateProfileImage = async (req, res, next) => {
-  const result = await  uploadImage(req.file, "profiles", true)
-  console.log(result)
+  const user = await prisma.user.findUnique({
+    where: {
+      id: req.user.id
+    }
+  })
+  let result
+  if (!user.profilePhoto) {
+    const fileName = `${generateSecureRandomString(32)}`
+
+    result = await uploadImage(req.file.buffer, fileName, "profiles", true)
+
+  } else { 
+  const splittedUrl = user.profilePhoto.split("/")
+  const fileNameWithExt = splittedUrl[splittedUrl.length - 1]
+  const fileName = fileNameWithExt.split(".")[0]
+
+  result = await  uploadImage(req.file.buffer,fileName, "profiles", true)
+}
   await prisma.user.update({
     where:{id: req.user.id},
     data: {
