@@ -1,6 +1,7 @@
 // import { isRedisVersionLowerThan } from "bullmq"
 import { DB_ERROR_CODES, prisma }from "../prisma/db.mjs"
 import {ServerError} from "../error.mjs"
+import { spawn } from "child_process"
 
 const addGame = async( req, res, next) => {
     // add validation
@@ -37,27 +38,46 @@ const requestGame = async( req, res, next) => {
             }
         })
     }
+    let gameSessionPlayer;
     try {
-    const gameSessionPlayer = await prisma.gameSessionPlayer.create({
+    gameSessionPlayer = await prisma.gameSessionPlayer.create({
         data: {
             sessionID: gameSession.id,
             playerID: req.user.id
         }
     })
-
-    res.json({
-         msg: "sucessful",
-         gameID: req.body.gameID, 
-         gameSession,
-         gameSessionPlayer
-        
-        })
 } catch (err) {
     if (err.code === DB_ERROR_CODES.UNIQUE_ERR) {
         throw new ServerError(400, "player is already add in this game session")
     }
     throw err 
     }
+    const game = await prisma.game.findUnique ({
+        where: {
+        id : req.body.gameID
+        }
+    })
+    const data = await prisma.gameSessionPlayer.aggregate({
+        wherel: {
+            sessionID: gameSession.id
+        },
+        _count: {
+            playerID : true
+        }
+    })
+    if (game.maxPlayer > data._count.playerID) {
+        return res.json({          
+         msg: "sucessful",
+         gameID: req.body.gameID, 
+         gameSession,
+         gameSessionPlayer,
+        data
+        })
+    }
+
+    // Start Game 
+
+    
 }
 
 export { addGame, listGame, requestGame }
