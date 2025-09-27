@@ -1,4 +1,3 @@
-// import { isRedisVersionLowerThan } from "bullmq"
 import { DB_ERROR_CODES, prisma }from "../prisma/db.mjs"
 import {ServerError} from "../error.mjs"
 import { spawn } from "child_process"
@@ -74,10 +73,39 @@ const requestGame = async( req, res, next) => {
         data
         })
     }
+    console.log('game start')
+    const pid = await startGame()
 
-    // Start Game 
+     res.json({
+    msg: "successful",
+    gameID: req.body.gameID,
+    gameSession,
+    gameSessionPlayer,
+    data,
+    pid
+  })
+
+  const startGame = async () => {
+
+    const gameInstance = spawn('node'['G:\game_mananger_server_nodejs\All Games\Snake\indexe.mjs', 8080],{
+        deteched: true,
+        stdio: 'ignore'
+    }
+    )
+  }
+
+
+
+
+
 
     
 }
 
 export { addGame, listGame, requestGame }
+
+
+
+
+
+
